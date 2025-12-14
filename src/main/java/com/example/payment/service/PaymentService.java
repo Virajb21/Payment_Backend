@@ -17,8 +17,16 @@ import java.time.Instant;
 public class PaymentService {
 
     private final HmacUtil hmacUtil;
+    private final IdempotenceyService idempotenceyService;
+    public PaymentService(HmacUtil hmacUtil, IdempotenceyService idempotenceyService) {
+        this.hmacUtil = hmacUtil;
+        this.idempotenceyService = idempotenceyService;
+
+
+    }
+
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
-    public PaymentService(HmacUtil hmacUtil) { this.hmacUtil = hmacUtil; }
+
     @Value("${payment.hmac.secret}")
     private String secretKey;
 
@@ -56,9 +64,18 @@ public class PaymentService {
 
         log.info("HMAC Validation SUCCESS for order {} transaction {}", request.getOrderId(), request.getTransactionId());
 
+        boolean firstTime = idempotenceyService.acquire(request.getTransactionId());
+        if(!firstTime) {
+            log.info("Duplicate transaction detected: {}", request.getTransactionId());
+            return;
+        }
+
         // TODO next steps
         // save to DB
         // push into Kafka
         // trigger downstream
+
+        log.info("Transaction accepted for processing: {}",
+                request.getTransactionId());
     }
 }
