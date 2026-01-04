@@ -18,9 +18,11 @@ public class PaymentService {
 
     private final HmacUtil hmacUtil;
     private final IdempotenceyService idempotenceyService;
-    public PaymentService(HmacUtil hmacUtil, IdempotenceyService idempotenceyService) {
+    private final KafkaProducerService kafkaProducerService;
+    public PaymentService(HmacUtil hmacUtil, IdempotenceyService idempotenceyService , KafkaProducerService kafkaProducerService) {
         this.hmacUtil = hmacUtil;
         this.idempotenceyService = idempotenceyService;
+        this.kafkaProducerService = kafkaProducerService;
 
 
     }
@@ -70,9 +72,11 @@ public class PaymentService {
             return;
         }
 
+        // push into Kafka
+        kafkaProducerService.publishTransaction(request);
         // TODO next steps
         // save to DB
-        // push into Kafka
+
         // trigger downstream
 
         log.info("Transaction accepted for processing: {}",
