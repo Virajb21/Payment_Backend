@@ -1,8 +1,15 @@
 package com.example.payment.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.Instant;
 
+@Document(collection = "fraud_decisions")
 public class FraudDecision {
+
+    @Id
+    private String id;
 
     private String transactionId;
     private double riskScore;
